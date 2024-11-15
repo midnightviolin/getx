@@ -1,229 +1,209 @@
-// part of rx_stream;
+part of rx_stream;
 
-// /// [GetStream] is the lightest and most performative way of working
-// /// with events at Dart. You sintaxe is like StreamController, but it works
-// /// with simple callbacks. In this way, every event calls only one function.
-// /// There is no buffering, to very low memory consumption.
-// /// event [add] will add a object to stream. [addError] will add a error
-// /// to stream. [listen] is a very light StreamSubscription interface.
-// /// Is possible take the last value with [value] property.
-// class GetStream<T> {
-//   void Function()? onListen;
-//   void Function()? onPause;
-//   void Function()? onResume;
-//   FutureOr<void> Function()? onCancel;
+/// [GetStream] is the lightest and most performative way of working
+/// with events at Dart. You sintaxe is like StreamController, but it works
+/// with simple callbacks. In this way, every event calls only one function.
+/// There is no buffering, to very low memory consumption.
+/// event [add] will add a object to stream. [addError] will add a error
+/// to stream. [listen] is a very light StreamSubscription interface.
+/// Is possible take the last value with [value] property.
+class GetStream<T> {
+  void Function()? onListen;
+  void Function()? onPause;
+  void Function()? onResume;
+  FutureOr<void> Function()? onCancel;
 
-//   GetStream({this.onListen, this.onPause, this.onResume, this.onCancel});
+  GetStream({this.onListen, this.onPause, this.onResume, this.onCancel});
+  List<LightSubscription<T>>? _onData = <LightSubscription<T>>[];
 
-//   factory GetStream.fromValue(T value,
-//       {Function()? onListen,
-//       Function()? onPause,
-//       Function()? onResume,
-//       FutureOr<void> Function()? onCancel}) {
-//     final valuedStream = GetStream<T>(
-//         onListen: onListen,
-//         onPause: onPause,
-//         onResume: onResume,
-//         onCancel: onCancel)
-//       .._value = value;
+  bool? _isBusy = false;
 
-//     return valuedStream;
-//   }
+  FutureOr<bool?> removeSubscription(LightSubscription<T> subs) async {
+    if (!_isBusy!) {
+      return _onData!.remove(subs);
+    } else {
+      await Future.delayed(Duration.zero);
+      return _onData?.remove(subs);
+    }
+  }
 
-//   List<LightSubscription<T>>? _onData = <LightSubscription<T>>[];
+  FutureOr<void> addSubscription(LightSubscription<T> subs) async {
+    if (!_isBusy!) {
+      return _onData!.add(subs);
+    } else {
+      await Future.delayed(Duration.zero);
+      return _onData!.add(subs);
+    }
+  }
 
-//   bool? _isBusy = false;
+  int? get length => _onData?.length;
 
-//   FutureOr<bool?> removeSubscription(LightSubscription<T> subs) async {
-//     if (!_isBusy!) {
-//       return _onData!.remove(subs);
-//     } else {
-//       await Future.delayed(Duration.zero);
-//       return _onData?.remove(subs);
-//     }
-//   }
+  bool get hasListeners => _onData!.isNotEmpty;
 
-//   FutureOr<void> addSubscription(LightSubscription<T> subs) async {
-//     if (!_isBusy!) {
-//       return _onData!.add(subs);
-//     } else {
-//       await Future.delayed(Duration.zero);
-//       return _onData!.add(subs);
-//     }
-//   }
+  void _notifyData(T data) {
+    _isBusy = true;
+    for (final item in _onData!) {
+      if (!item.isPaused) {
+        item._data?.call(data);
+      }
+    }
+    _isBusy = false;
+  }
 
-//   int? get length => _onData?.length;
+  void _notifyError(Object error, [StackTrace? stackTrace]) {
+    assert(!isClosed, 'You cannot add errors to a closed stream.');
+    _isBusy = true;
+    var itemsToRemove = <LightSubscription<T>>[];
+    for (final item in _onData!) {
+      if (!item.isPaused) {
+        if (stackTrace != null) {
+          item._onError?.call(error, stackTrace);
+        } else {
+          item._onError?.call(error);
+        }
 
-//   bool get hasListeners => _onData!.isNotEmpty;
+        if (item.cancelOnError ?? false) {
+          //item.cancel?.call();
+          itemsToRemove.add(item);
+          item.pause();
+          item._onDone?.call();
+        }
+      }
+    }
+    for (final item in itemsToRemove) {
+      _onData!.remove(item);
+    }
+    _isBusy = false;
+  }
 
-//   void _notifyData(T data) {
-//     _isBusy = true;
-//     for (final item in _onData!) {
-//       if (!item.isPaused) {
-//         item._data?.call(data);
-//       }
-//     }
-//     _isBusy = false;
-//   }
+  void _notifyDone() {
+    assert(!isClosed, 'You cannot close a closed stream.');
+    _isBusy = true;
+    for (final item in _onData!) {
+      if (!item.isPaused) {
+        item._onDone?.call();
+      }
+    }
+    _isBusy = false;
+  }
 
-//   void _notifyError(Object error, [StackTrace? stackTrace]) {
-//     assert(!isClosed, 'You cannot add errors to a closed stream.');
-//     _isBusy = true;
-//     var itemsToRemove = <LightSubscription<T>>[];
-//     for (final item in _onData!) {
-//       if (!item.isPaused) {
-//         if (stackTrace != null) {
-//           item._onError?.call(error, stackTrace);
-//         } else {
-//           item._onError?.call(error);
-//         }
+  T? _value;
 
-//         if (item.cancelOnError ?? false) {
-//           //item.cancel?.call();
-//           itemsToRemove.add(item);
-//           item.pause();
-//           item._onDone?.call();
-//         }
-//       }
-//     }
-//     for (final item in itemsToRemove) {
-//       _onData!.remove(item);
-//     }
-//     _isBusy = false;
-//   }
+  T? get value => _value;
 
-//   void _notifyDone() {
-//     assert(!isClosed, 'You cannot close a closed stream.');
-//     _isBusy = true;
-//     for (final item in _onData!) {
-//       if (!item.isPaused) {
-//         item._onDone?.call();
-//       }
-//     }
-//     _isBusy = false;
-//   }
+  void add(T event) {
+    assert(!isClosed, 'You cannot add event to closed Stream');
+    _value = event;
+    _notifyData(event);
+  }
 
-//   late T _value;
+  bool get isClosed => _onData == null;
 
-//   T get value {
-//     // RxInterface.proxy?.addListener(this);
-//     return _value;
-//   }
+  void addError(Object error, [StackTrace? stackTrace]) {
+    assert(!isClosed, 'You cannot add error to closed Stream');
+    _notifyError(error, stackTrace);
+  }
 
-//   void add(T event) {
-//     assert(!isClosed, 'You cannot add event to closed Stream');
-//     _value = event;
-//     _notifyData(event);
-//   }
+  void close() {
+    assert(!isClosed, 'You cannot close a closed Stream');
+    _notifyDone();
+    _onData = null;
+    _isBusy = null;
+    _value = null;
+  }
 
-//   bool get isClosed => _onData == null;
+  LightSubscription<T> listen(void Function(T event) onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+    final subs = LightSubscription<T>(
+      removeSubscription,
+      onPause: onPause,
+      onResume: onResume,
+      onCancel: onCancel,
+    )
+      ..onData(onData)
+      ..onError(onError)
+      ..onDone(onDone)
+      ..cancelOnError = cancelOnError;
+    addSubscription(subs);
+    onListen?.call();
+    return subs;
+  }
 
-//   void addError(Object error, [StackTrace? stackTrace]) {
-//     assert(!isClosed, 'You cannot add error to closed Stream');
-//     _notifyError(error, stackTrace);
-//   }
+  Stream<T> get stream =>
+      GetStreamTransformation(addSubscription, removeSubscription);
+}
 
-//   void close() {
-//     assert(!isClosed, 'You cannot close a closed Stream');
-//     _notifyDone();
-//     _onData = null;
-//     _isBusy = null;
-//     //  _value = null;
-//   }
+class LightSubscription<T> extends StreamSubscription<T> {
+  final RemoveSubscription<T> _removeSubscription;
+  LightSubscription(this._removeSubscription,
+      {this.onPause, this.onResume, this.onCancel});
+  final void Function()? onPause;
+  final void Function()? onResume;
+  final FutureOr<void> Function()? onCancel;
 
-//   LightSubscription<T> listen(void Function(T event) onData,
-//       {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-//     final subs = LightSubscription<T>(
-//       removeSubscription,
-//       onPause: onPause,
-//       onResume: onResume,
-//       onCancel: onCancel,
-//     )
-//       ..onData(onData)
-//       ..onError(onError)
-//       ..onDone(onDone)
-//       ..cancelOnError = cancelOnError;
-//     addSubscription(subs);
-//     onListen?.call();
-//     return subs;
-//   }
+  bool? cancelOnError = false;
 
-//   Stream<T> get stream =>
-//       GetStreamTransformation(addSubscription, removeSubscription);
-// }
+  @override
+  Future<void> cancel() {
+    _removeSubscription(this);
+    onCancel?.call();
+    return Future.value();
+  }
 
-// class LightSubscription<T> extends StreamSubscription<T> {
-//   final RemoveSubscription<T> _removeSubscription;
-//   LightSubscription(this._removeSubscription,
-//       {this.onPause, this.onResume, this.onCancel});
-//   final void Function()? onPause;
-//   final void Function()? onResume;
-//   final FutureOr<void> Function()? onCancel;
+  OnData<T>? _data;
 
-//   bool? cancelOnError = false;
+  Function? _onError;
 
-//   @override
-//   Future<void> cancel() {
-//     _removeSubscription(this);
-//     onCancel?.call();
-//     return Future.value();
-//   }
+  Callback? _onDone;
 
-//   OnData<T>? _data;
+  bool _isPaused = false;
 
-//   Function? _onError;
+  @override
+  void onData(OnData<T>? handleData) => _data = handleData;
 
-//   Callback? _onDone;
+  @override
+  void onError(Function? handleError) => _onError = handleError;
 
-//   bool _isPaused = false;
+  @override
+  void onDone(Callback? handleDone) => _onDone = handleDone;
 
-//   @override
-//   void onData(OnData<T>? handleData) => _data = handleData;
+  @override
+  void pause([Future<void>? resumeSignal]) {
+    _isPaused = true;
+    onPause?.call();
+  }
 
-//   @override
-//   void onError(Function? handleError) => _onError = handleError;
+  @override
+  void resume() {
+    _isPaused = false;
+    onResume?.call();
+  }
 
-//   @override
-//   void onDone(Callback? handleDone) => _onDone = handleDone;
+  @override
+  bool get isPaused => _isPaused;
 
-//   @override
-//   void pause([Future<void>? resumeSignal]) {
-//     _isPaused = true;
-//     onPause?.call();
-//   }
+  @override
+  Future<E> asFuture<E>([E? futureValue]) => Future.value(futureValue);
+}
 
-//   @override
-//   void resume() {
-//     _isPaused = false;
-//     onResume?.call();
-//   }
+class GetStreamTransformation<T> extends Stream<T> {
+  final AddSubscription<T> _addSubscription;
+  final RemoveSubscription<T> _removeSubscription;
+  GetStreamTransformation(this._addSubscription, this._removeSubscription);
 
-//   @override
-//   bool get isPaused => _isPaused;
+  @override
+  LightSubscription<T> listen(void Function(T event)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+    final subs = LightSubscription<T>(_removeSubscription)
+      ..onData(onData)
+      ..onError(onError)
+      ..onDone(onDone);
+    _addSubscription(subs);
+    return subs;
+  }
+}
 
-//   @override
-//   Future<E> asFuture<E>([E? futureValue]) => Future.value(futureValue);
-// }
+typedef RemoveSubscription<T> = FutureOr<bool?> Function(
+    LightSubscription<T> subs);
 
-// class GetStreamTransformation<T> extends Stream<T> {
-//   final AddSubscription<T> _addSubscription;
-//   final RemoveSubscription<T> _removeSubscription;
-//   GetStreamTransformation(this._addSubscription, this._removeSubscription);
-
-//   @override
-//   LightSubscription<T> listen(void Function(T event)? onData,
-//       {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-//     final subs = LightSubscription<T>(_removeSubscription)
-//       ..onData(onData)
-//       ..onError(onError)
-//       ..onDone(onDone);
-//     _addSubscription(subs);
-//     return subs;
-//   }
-// }
-
-// typedef RemoveSubscription<T> = FutureOr<bool?> Function(
-//     LightSubscription<T> subs);
-
-// typedef AddSubscription<T> =
-//FutureOr<void> Function(LightSubscription<T> subs);
+typedef AddSubscription<T> = FutureOr<void> Function(LightSubscription<T> subs);

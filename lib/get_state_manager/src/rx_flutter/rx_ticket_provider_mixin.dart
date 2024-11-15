@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../../../get_instance/src/lifecycle.dart';
 import '../../get_state_manager.dart';
 
 /// Used like `SingleTickerProviderMixin` but only with Get Controllers.
@@ -197,7 +196,7 @@ class _WidgetTicker extends Ticker {
 ///  }
 ///  ...
 /// ```
-mixin SingleGetTickerProviderMixin on GetLifeCycleMixin
+mixin SingleGetTickerProviderMixin on DisposableInterface
     implements TickerProvider {
   @override
   Ticker createTicker(TickerCallback onTick) => Ticker(onTick);

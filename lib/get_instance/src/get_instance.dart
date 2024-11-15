@@ -21,7 +21,7 @@ class InstanceInfo {
 }
 
 class GetInstance {
-  factory GetInstance() => _getInstance ??= GetInstance._();
+  factory GetInstance() => _getInstance ??= const GetInstance._();
 
   const GetInstance._();
 
@@ -162,24 +162,29 @@ class GetInstance {
   }) {
     final key = _getKey(S, name);
 
-    _InstanceBuilderFactory<S>? dep;
     if (_singl.containsKey(key)) {
-      final _dep = _singl[key];
-      if (_dep == null || !_dep.isDirty) {
-        return;
-      } else {
-        dep = _dep as _InstanceBuilderFactory<S>;
+      final dep = _singl[key];
+      if (dep != null && dep.isDirty) {
+        _singl[key] = _InstanceBuilderFactory<S>(
+          isSingleton,
+          builder,
+          permanent,
+          false,
+          fenix,
+          name,
+          lateRemove: dep as _InstanceBuilderFactory<S>,
+        );
       }
+    } else {
+      _singl[key] = _InstanceBuilderFactory<S>(
+        isSingleton,
+        builder,
+        permanent,
+        false,
+        fenix,
+        name,
+      );
     }
-    _singl[key] = _InstanceBuilderFactory<S>(
-      isSingleton: isSingleton,
-      builderFunc: builder,
-      permanent: permanent,
-      isInit: false,
-      fenix: fenix,
-      tag: name,
-      lateRemove: dep,
-    );
   }
 
   /// Initializes the dependencies for a Class Instance [S] (or tag),
@@ -200,8 +205,7 @@ class GetInstance {
       if (_singl[key]!.isSingleton!) {
         _singl[key]!.isInit = true;
         if (Get.smartManagement != SmartManagement.onlyBuilder) {
-          RouterReportManager.instance
-              .reportDependencyLinkedToRoute(_getKey(S, name));
+          RouterReportManager.reportDependencyLinkedToRoute(_getKey(S, name));
         }
       }
     }
@@ -245,7 +249,7 @@ class GetInstance {
   S _startController<S>({String? tag}) {
     final key = _getKey(S, tag);
     final i = _singl[key]!.getDependency() as S;
-    if (i is GetLifeCycleMixin) {
+    if (i is GetLifeCycleBase) {
       i.onStart();
       if (tag == null) {
         Get.log('Instance "$S" has been initialized');
@@ -253,7 +257,7 @@ class GetInstance {
         Get.log('Instance "$S" with tag "$tag" has been initialized');
       }
       if (!_singl[key]!.isSingleton!) {
-        RouterReportManager.instance.appendRouteByCreate(i);
+        RouterReportManager.appendRouteByCreate(i);
       }
     }
     return i;
@@ -319,7 +323,7 @@ class GetInstance {
       {@deprecated bool clearFactory = true, bool clearRouteBindings = true}) {
     //  if (clearFactory) _factory.clear();
     // deleteAll(force: true);
-    if (clearRouteBindings) RouterReportManager.instance.clearRouteKeys();
+    if (clearRouteBindings) RouterReportManager.clearRouteKeys();
     _singl.clear();
 
     return true;
@@ -374,7 +378,7 @@ class GetInstance {
       return false;
     }
 
-    if (i is GetLifeCycleMixin) {
+    if (i is GetLifeCycleBase) {
       i.onDelete();
       Get.log('"$newKey" onDelete() called');
     }
@@ -447,7 +451,7 @@ class GetInstance {
       return;
     }
 
-    if (i is GetLifeCycleMixin) {
+    if (i is GetLifeCycleBase) {
       i.onDelete();
       Get.log('"$newKey" onDelete() called');
     }
@@ -514,14 +518,14 @@ class _InstanceBuilderFactory<S> {
 
   String? tag;
 
-  _InstanceBuilderFactory({
-    required this.isSingleton,
-    required this.builderFunc,
-    required this.permanent,
-    required this.isInit,
-    required this.fenix,
-    required this.tag,
-    required this.lateRemove,
+  _InstanceBuilderFactory(
+    this.isSingleton,
+    this.builderFunc,
+    this.permanent,
+    this.isInit,
+    this.fenix,
+    this.tag, {
+    this.lateRemove,
   });
 
   void _showInitLog() {

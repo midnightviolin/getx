@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../get.dart';
 
-class GetMaterialController extends FullLifeCycleController {
-  static GetMaterialController get to => Get.find();
-
+class GetMaterialController extends SuperController {
   bool testMode = false;
   Key? unikey;
   ThemeData? theme;
@@ -30,14 +28,14 @@ class GetMaterialController extends FullLifeCycleController {
 
   CustomTransition? customTransition;
 
-  Map<dynamic, GetDelegate> keys = {};
+  var _key = GlobalKey<NavigatorState>(debugLabel: 'Key Created by default');
 
-  GlobalKey<NavigatorState> get key => rootDelegate.navigatorKey;
+  Map<dynamic, GlobalKey<NavigatorState>> keys = {};
 
-  GetDelegate get rootDelegate => Get.createDelegate();
+  GlobalKey<NavigatorState> get key => _key;
 
   GlobalKey<NavigatorState>? addKey(GlobalKey<NavigatorState> newKey) {
-    rootDelegate.navigatorKey = newKey;
+    _key = newKey;
     return key;
   }
 
@@ -50,6 +48,18 @@ class GetMaterialController extends FullLifeCycleController {
       }
     });
   }
+
+  @override
+  void onDetached() {}
+
+  @override
+  void onInactive() {}
+
+  @override
+  void onPaused() {}
+
+  @override
+  void onResumed() {}
 
   void restartApp() {
     unikey = UniqueKey();

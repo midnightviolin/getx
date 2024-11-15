@@ -1,3 +1,15 @@
+## [4.6.5]
+Fix pub dev score
+
+## [4.6.4]
+Added backward compatibility with flutter 2.
+
+## [4.6.3]
+Fix SDK constraints
+
+## [4.6.2]
+Added compatibility with flutter 3.0
+
 ## [4.6.1]
 Fix GetConnect on Flutter web
 

@@ -31,8 +31,9 @@ class LoginView extends GetView<LoginController> {
               ),
               onPressed: () {
                 AuthService.to.login();
-                final thenTo = context.params['then'];
-                Get.offNamed(thenTo ?? Routes.HOME);
+                final thenTo = Get.rootDelegate.currentConfiguration!
+                    .currentPage!.parameters?['then'];
+                Get.rootDelegate.offNamed(thenTo ?? Routes.HOME);
               },
             ),
           ],

@@ -8,28 +8,21 @@ import 'drawer.dart';
 class RootView extends GetView<RootController> {
   @override
   Widget build(BuildContext context) {
-    return RouterOutlet.builder(
-      delegate: Get.nestedKey(null),
-      builder: (context) {
-        final title = context.location;
+    return GetRouterOutlet.builder(
+      builder: (context, delegate, current) {
+        final title = current?.location;
         return Scaffold(
           drawer: DrawerWidget(),
           appBar: AppBar(
-            title: Text(title),
+            title: Text(title ?? ''),
             centerTitle: true,
           ),
-          //body: HomeView(),
-
           body: GetRouterOutlet(
             initialRoute: Routes.HOME,
-            delegate: Get.nestedKey(null),
-            anchorRoute: '/',
-            filterPages: (afterAnchor) {
-              // print(afterAnchor);
-              // print('dddddddddddddddddd');
-              // print(afterAnchor.take(1));
-              return afterAnchor.take(1);
-            },
+            // anchorRoute: '/',
+            // filterPages: (afterAnchor) {
+            //   return afterAnchor.take(1);
+            // },
           ),
         );
       },

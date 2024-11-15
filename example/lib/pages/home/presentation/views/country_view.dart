@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
 
 class CountryView extends GetView<HomeController> {
-  const CountryView({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -29,15 +28,14 @@ class CountryView extends GetView<HomeController> {
             ),
             body: Center(
               child: ListView.builder(
-                  itemCount: controller.state.countries.length,
+                  itemCount: controller.state!.countries.length,
                   itemBuilder: (context, index) {
-                    final country = controller.state.countries[index];
+                    final country = controller.state!.countries[index];
                     return ListTile(
-                      onTap: () async {
+                      onTap: () {
                         //Get.rootDelegate.toNamed('/home/country');
-                        final data = await Get.toNamed(
-                            '/home/country/details?id=$index');
-                        print(data);
+                        Get.rootDelegate
+                            .toNamed('/home/country/details?id=$index');
                       },
                       trailing: CircleAvatar(
                         backgroundImage: NetworkImage(

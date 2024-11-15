@@ -22,7 +22,7 @@ class GetModalBottomSheetRoute<T> extends PopupRoute<T> {
     this.enterBottomSheetDuration = const Duration(milliseconds: 250),
     this.exitBottomSheetDuration = const Duration(milliseconds: 200),
   }) : super(settings: settings) {
-    RouterReportManager.instance.reportCurrentRoute(this);
+    RouterReportManager.reportCurrentRoute(this);
   }
   final bool? isPersistent;
   final WidgetBuilder? builder;
@@ -42,7 +42,7 @@ class GetModalBottomSheetRoute<T> extends PopupRoute<T> {
   final bool removeTop;
 
   @override
-  Duration get transitionDuration => Duration(milliseconds: 700);
+  Duration get transitionDuration => const Duration(milliseconds: 700);
 
   @override
   bool get barrierDismissible => isDismissible;
@@ -57,7 +57,7 @@ class GetModalBottomSheetRoute<T> extends PopupRoute<T> {
 
   @override
   void dispose() {
-    RouterReportManager.instance.reportRouteDispose(this);
+    RouterReportManager.reportRouteDispose(this);
     super.dispose();
   }
 

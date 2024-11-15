@@ -2,15 +2,13 @@ import 'package:get/get.dart';
 
 import '../controllers/product_details_controller.dart';
 
-class ProductDetailsBinding extends Binding {
+class ProductDetailsBinding extends Bindings {
   @override
-  List<Bind> dependencies() {
-    return [
-      Bind.create<ProductDetailsController>(
-        () => ProductDetailsController(
-          Get.parameters['productId'] ?? '',
-        ),
-      )
-    ];
+  void dependencies() {
+    Get.create<ProductDetailsController>(
+      () => ProductDetailsController(
+        Get.parameters['productId'] ?? '',
+      ),
+    );
   }
 }

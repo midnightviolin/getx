@@ -8,11 +8,12 @@ import '../../get_instance/src/bindings_interface.dart';
 import '../../get_utils/get_utils.dart';
 import '../get_navigation.dart';
 import 'dialog/dialog_route.dart';
+import 'root/parse_route.dart';
 
 /// It replaces the Flutter Navigator, but needs no context.
 /// You can to use navigator.push(YourRoute()) rather
 /// Navigator.push(context, YourRoute());
-NavigatorState? get navigator => GetNavigationExt(Get).key.currentState;
+NavigatorState? get navigator => GetNavigation(Get).key.currentState;
 
 extension ExtensionBottomSheet on GetInterface {
   Future<T?> bottomSheet<T>(
@@ -76,7 +77,6 @@ extension ExtensionDialog on GetInterface {
     Curve? transitionCurve,
     String? name,
     RouteSettings? routeSettings,
-    String? id,
   }) {
     assert(debugCheckHasMaterialLocalizations(context!));
 
@@ -109,24 +109,22 @@ extension ExtensionDialog on GetInterface {
       navigatorKey: navigatorKey,
       routeSettings:
           routeSettings ?? RouteSettings(arguments: arguments, name: name),
-      id: id,
     );
   }
 
   /// Api from showGeneralDialog with no context
-  Future<T?> generalDialog<T>(
-      {required RoutePageBuilder pageBuilder,
-      bool barrierDismissible = false,
-      String? barrierLabel,
-      Color barrierColor = const Color(0x80000000),
-      Duration transitionDuration = const Duration(milliseconds: 200),
-      RouteTransitionsBuilder? transitionBuilder,
-      GlobalKey<NavigatorState>? navigatorKey,
-      RouteSettings? routeSettings,
-      String? id}) {
+  Future<T?> generalDialog<T>({
+    required RoutePageBuilder pageBuilder,
+    bool barrierDismissible = false,
+    String? barrierLabel,
+    Color barrierColor = const Color(0x80000000),
+    Duration transitionDuration = const Duration(milliseconds: 200),
+    RouteTransitionsBuilder? transitionBuilder,
+    GlobalKey<NavigatorState>? navigatorKey,
+    RouteSettings? routeSettings,
+  }) {
     assert(!barrierDismissible || barrierLabel != null);
-    final key = navigatorKey ?? Get.nestedKey(id)?.navigatorKey;
-    final nav = key?.currentState ??
+    final nav = navigatorKey?.currentState ??
         Navigator.of(overlayContext!,
             rootNavigator:
                 true); //overlay context will always return the root navigator
@@ -149,7 +147,6 @@ extension ExtensionDialog on GetInterface {
     EdgeInsetsGeometry? titlePadding,
     TextStyle? titleStyle,
     Widget? content,
-    String? id,
     EdgeInsetsGeometry? contentPadding,
     VoidCallback? onConfirm,
     VoidCallback? onCancel,
@@ -188,13 +185,13 @@ extension ExtensionDialog on GetInterface {
         actions.add(TextButton(
           style: TextButton.styleFrom(
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             shape: RoundedRectangleBorder(
                 side: BorderSide(
                     color: buttonColor ?? theme.colorScheme.secondary,
                     width: 2,
                     style: BorderStyle.solid),
-                borderRadius: BorderRadius.circular(radius)),
+                borderRadius: BorderRadius.circular(100)),
           ),
           onPressed: () {
             onCancel?.call();
@@ -217,13 +214,12 @@ extension ExtensionDialog on GetInterface {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               backgroundColor: buttonColor ?? theme.colorScheme.secondary,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(radius)),
+                  borderRadius: BorderRadius.circular(100)),
             ),
             child: Text(
               textConfirm ?? "Ok",
               style:
-                  TextStyle(
-                  color: confirmTextColor ?? theme.colorScheme.surface),
+                  TextStyle(color: confirmTextColor ?? theme.backgroundColor),
             ),
             onPressed: () {
               onConfirm?.call();
@@ -232,8 +228,8 @@ extension ExtensionDialog on GetInterface {
     }
 
     Widget baseAlertDialog = AlertDialog(
-      titlePadding: titlePadding ?? EdgeInsets.all(8),
-      contentPadding: contentPadding ?? EdgeInsets.all(8),
+      titlePadding: titlePadding ?? const EdgeInsets.all(8),
+      contentPadding: contentPadding ?? const EdgeInsets.all(8),
 
       backgroundColor: backgroundColor ?? theme.dialogBackgroundColor,
       shape: RoundedRectangleBorder(
@@ -246,7 +242,7 @@ extension ExtensionDialog on GetInterface {
           content ??
               Text(middleText,
                   textAlign: TextAlign.center, style: middleTextStyle),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           ButtonTheme(
             minWidth: 78.0,
             height: 34.0,
@@ -272,7 +268,6 @@ extension ExtensionDialog on GetInterface {
           : baseAlertDialog,
       barrierDismissible: barrierDismissible,
       navigatorKey: navigatorKey,
-      id: id,
     );
   }
 }
@@ -359,7 +354,7 @@ extension ExtensionSnackbar on GetInterface {
     if (instantInit) {
       controller.show();
     } else {
-      ambiguate(SchedulerBinding.instance)!.addPostFrameCallback((_) {
+      ambiguate(SchedulerBinding.instance)?.addPostFrameCallback((_) {
         controller.show();
       });
     }
@@ -435,14 +430,14 @@ extension ExtensionSnackbar on GetInterface {
             ),
         snackPosition: snackPosition ?? SnackPosition.TOP,
         borderRadius: borderRadius ?? 15,
-        margin: margin ?? EdgeInsets.symmetric(horizontal: 10),
+        margin: margin ?? const EdgeInsets.symmetric(horizontal: 10),
         duration: duration,
         barBlur: barBlur ?? 7.0,
         backgroundColor: backgroundColor ?? Colors.grey.withOpacity(0.2),
         icon: icon,
         shouldIconPulse: shouldIconPulse ?? true,
         maxWidth: maxWidth,
-        padding: padding ?? EdgeInsets.all(16),
+        padding: padding ?? const EdgeInsets.all(16),
         borderColor: borderColor,
         borderWidth: borderWidth,
         leftBarIndicatorColor: leftBarIndicatorColor,
@@ -459,7 +454,7 @@ extension ExtensionSnackbar on GetInterface {
         snackStyle: snackStyle ?? SnackStyle.FLOATING,
         forwardAnimationCurve: forwardAnimationCurve ?? Curves.easeOutCirc,
         reverseAnimationCurve: reverseAnimationCurve ?? Curves.easeOutCirc,
-        animationDuration: animationDuration ?? Duration(seconds: 1),
+        animationDuration: animationDuration ?? const Duration(seconds: 1),
         overlayBlur: overlayBlur ?? 0.0,
         overlayColor: overlayColor ?? Colors.transparent,
         userInputForm: userInputForm);
@@ -470,7 +465,7 @@ extension ExtensionSnackbar on GetInterface {
       controller.show();
     } else {
       //routing.isSnackbar = true;
-      ambiguate(SchedulerBinding.instance)!.addPostFrameCallback((_) {
+      ambiguate(SchedulerBinding.instance)?.addPostFrameCallback((_) {
         controller.show();
       });
     }
@@ -478,7 +473,7 @@ extension ExtensionSnackbar on GetInterface {
   }
 }
 
-extension GetNavigationExt on GetInterface {
+extension GetNavigation on GetInterface {
   /// **Navigation.push()** shortcut.<br><br>
   ///
   /// Pushes a new `page` to the stack
@@ -503,62 +498,64 @@ extension GetNavigationExt on GetInterface {
   ///
   /// By default, GetX will prevent you from push a route that you already in,
   /// if you want to push anyway, set [preventDuplicates] to false
-  Future<T?>? to<T>(Widget Function() page,
-      {bool? opaque,
-      Transition? transition,
-      Curve? curve,
-      Duration? duration,
-      int? id,
-      String? routeName,
-      bool fullscreenDialog = false,
-      dynamic arguments,
-      List<BindingsInterface> bindings = const [],
-      bool preventDuplicates = true,
-      bool? popGesture,
-      bool showCupertinoParallax = true,
-      double Function(BuildContext context)? gestureWidth,
-      bool rebuildStack = true,
-      PreventDuplicateHandlingMode preventDuplicateHandlingMode =
-          PreventDuplicateHandlingMode.ReorderRoutes}) {
-    return searchDelegate(id).to(
-      page,
-      opaque: opaque,
-      transition: transition,
-      curve: curve,
-      duration: duration,
-      id: id,
-      routeName: routeName,
-      fullscreenDialog: fullscreenDialog,
-      arguments: arguments,
-      bindings: bindings,
-      preventDuplicates: preventDuplicates,
-      popGesture: popGesture,
-      showCupertinoParallax: showCupertinoParallax,
-      gestureWidth: gestureWidth,
-      rebuildStack: rebuildStack,
-      preventDuplicateHandlingMode: preventDuplicateHandlingMode,
-    );
+  Future<T?>? to<T>(
+    dynamic page, {
+    bool? opaque,
+    Transition? transition,
+    Curve? curve,
+    Duration? duration,
+    int? id,
+    String? routeName,
+    bool fullscreenDialog = false,
+    dynamic arguments,
+    Bindings? binding,
+    bool preventDuplicates = true,
+    bool? popGesture,
+    double Function(BuildContext context)? gestureWidth,
+  }) {
+    // var routeName = "/${page.runtimeType}";
+    routeName ??= "/${page.runtimeType}";
+    routeName = _cleanRouteName(routeName);
+    if (preventDuplicates && routeName == currentRoute) {
+      return null;
+    }
+    return global(id).currentState?.push<T>(
+          GetPageRoute<T>(
+            opaque: opaque ?? true,
+            page: _resolvePage(page, 'to'),
+            routeName: routeName,
+            gestureWidth: gestureWidth,
+            settings: RouteSettings(
+              name: routeName,
+              arguments: arguments,
+            ),
+            popGesture: popGesture ?? defaultPopGesture,
+            transition: transition ?? defaultTransition,
+            curve: curve ?? defaultTransitionCurve,
+            fullscreenDialog: fullscreenDialog,
+            binding: binding,
+            transitionDuration: duration ?? defaultTransitionDuration,
+          ),
+        );
   }
 
-//   GetPageBuilder _resolvePage(dynamic page, String method) {
-//     if (page is GetPageBuilder) {
-//       return page;
-//     } else if (page is Widget) {
-//       Get.log(
-//           '''WARNING, consider using: "Get.$method(() => Page())" 
-//instead of "Get.$method(Page())".
-// Using a widget function instead of a widget fully guarantees that the widget 
-//and its controllers will be removed from memory when they are no longer used.
-//       ''');
-//       return () => page;
-//     } else if (page is String) {
-//       throw '''Unexpected String,
-// use toNamed() instead''';
-//     } else {
-//       throw '''Unexpected format,
-// you can only use widgets and widget functions here''';
-//     }
-//   }
+  GetPageBuilder _resolvePage(dynamic page, String method) {
+    if (page is GetPageBuilder) {
+      return page;
+    } else if (page is Widget) {
+      Get.log(
+          '''WARNING, consider using: "Get.$method(() => Page())" instead of "Get.$method(Page())".
+Using a widget function instead of a widget fully guarantees that the widget and its controllers will be removed from memory when they are no longer used.
+      ''');
+      return () => page;
+    } else if (page is String) {
+      throw '''Unexpected String,
+use toNamed() instead''';
+    } else {
+      throw '''Unexpected format,
+you can only use widgets and widget functions here''';
+    }
+  }
 
   /// **Navigation.pushNamed()** shortcut.<br><br>
   ///
@@ -579,26 +576,23 @@ extension GetNavigationExt on GetInterface {
   Future<T?>? toNamed<T>(
     String page, {
     dynamic arguments,
-    dynamic id,
+    int? id,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
   }) {
-    // if (preventDuplicates && page == currentRoute) {
-    //   return null;
-    // }
+    if (preventDuplicates && page == currentRoute) {
+      return null;
+    }
 
     if (parameters != null) {
       final uri = Uri(path: page, queryParameters: parameters);
       page = uri.toString();
     }
 
-    return searchDelegate(id).toNamed(
-      page,
-      arguments: arguments,
-      id: id,
-      preventDuplicates: preventDuplicates,
-      parameters: parameters,
-    );
+    return global(id).currentState?.pushNamed<T>(
+          page,
+          arguments: arguments,
+        );
   }
 
   /// **Navigation.pushReplacementNamed()** shortcut.<br><br>
@@ -621,23 +615,21 @@ extension GetNavigationExt on GetInterface {
     String page, {
     dynamic arguments,
     int? id,
+    bool preventDuplicates = true,
     Map<String, String>? parameters,
   }) {
-    // if (preventDuplicates && page == currentRoute) {
-    //   return null;
-    // }
+    if (preventDuplicates && page == currentRoute) {
+      return null;
+    }
 
     if (parameters != null) {
       final uri = Uri(path: page, queryParameters: parameters);
       page = uri.toString();
     }
-    return searchDelegate(id).offNamed(
-      page,
-      arguments: arguments,
-      id: id,
-      // preventDuplicates: preventDuplicates,
-      parameters: parameters,
-    );
+    return global(id).currentState?.pushReplacementNamed(
+          page,
+          arguments: arguments,
+        );
   }
 
   /// **Navigation.popUntil()** shortcut.<br><br>
@@ -653,10 +645,34 @@ extension GetNavigationExt on GetInterface {
   /// or also like this:
   /// `Get.until((route) => !Get.isDialogOpen())`, to make sure the
   /// dialog is closed
-  void until(bool Function(GetPage<dynamic>) predicate, {int? id}) {
+  void until(RoutePredicate predicate, {int? id}) {
     // if (key.currentState.mounted) // add this if appear problems on future with route navigate
     // when widget don't mounted
-    return searchDelegate(id).backUntil(predicate);
+    return global(id).currentState?.popUntil(predicate);
+  }
+
+  /// **Navigation.pushAndRemoveUntil()** shortcut.<br><br>
+  ///
+  /// Push the given `page`, and then pop several pages in the stack until
+  /// [predicate] returns true
+  ///
+  /// [id] is for when you are using nested navigation,
+  /// as explained in documentation
+  ///
+  /// Obs: unlike other get methods, this one you need to send a function
+  /// that returns the widget to the page argument, like this:
+  /// Get.offUntil(GetPageRoute(page: () => HomePage()), predicate)
+  ///
+  /// [predicate] can be used like this:
+  /// `Get.offUntil(page, (route) => (route as GetPageRoute).routeName == '/home')`
+  /// to pop routes in stack until home,
+  /// or also like this:
+  /// `Get.until((route) => !Get.isDialogOpen())`, to make sure the dialog
+  /// is closed
+  Future<T?>? offUntil<T>(Route<T> page, RoutePredicate predicate, {int? id}) {
+    // if (key.currentState.mounted) // add this if appear problems on future with route navigate
+    // when widget don't mounted
+    return global(id).currentState?.pushAndRemoveUntil<T>(page, predicate);
   }
 
   /// **Navigation.pushNamedAndRemoveUntil()** shortcut.<br><br>
@@ -679,7 +695,7 @@ extension GetNavigationExt on GetInterface {
   /// Note: Always put a slash on the route name ('/page1'), to avoid unexpected errors
   Future<T?>? offNamedUntil<T>(
     String page,
-    bool Function(GetPage<dynamic>)? predicate, {
+    RoutePredicate predicate, {
     int? id,
     dynamic arguments,
     Map<String, String>? parameters,
@@ -689,13 +705,11 @@ extension GetNavigationExt on GetInterface {
       page = uri.toString();
     }
 
-    return searchDelegate(id).offNamedUntil<T>(
-      page,
-      predicate: predicate,
-      id: id,
-      arguments: arguments,
-      parameters: parameters,
-    );
+    return global(id).currentState?.pushNamedAndRemoveUntil<T>(
+          page,
+          predicate,
+          arguments: arguments,
+        );
   }
 
   /// **Navigation.popAndPushNamed()** shortcut.<br><br>
@@ -720,11 +734,11 @@ extension GetNavigationExt on GetInterface {
       final uri = Uri(path: page, queryParameters: parameters);
       page = uri.toString();
     }
-    return searchDelegate(id).backAndtoNamed(
-      page,
-      arguments: arguments,
-      result: result,
-    );
+    return global(id).currentState?.popAndPushNamed(
+          page,
+          arguments: arguments,
+          result: result,
+        );
   }
 
   /// **Navigation.removeRoute()** shortcut.<br><br>
@@ -733,8 +747,8 @@ extension GetNavigationExt on GetInterface {
   ///
   /// [id] is for when you are using nested navigation,
   /// as explained in documentation
-  void removeRoute(String name, {int? id}) {
-    return searchDelegate(id).removeRoute(name);
+  void removeRoute(Route<dynamic> route, {int? id}) {
+    return global(id).currentState?.removeRoute(route);
   }
 
   /// **Navigation.pushNamedAndRemoveUntil()** shortcut.<br><br>
@@ -759,7 +773,7 @@ extension GetNavigationExt on GetInterface {
   /// Note: Always put a slash on the route ('/page1'), to avoid unexpected errors
   Future<T?>? offAllNamed<T>(
     String newRouteName, {
-    // bool Function(GetPage<dynamic>)? predicate,
+    RoutePredicate? predicate,
     dynamic arguments,
     int? id,
     Map<String, String>? parameters,
@@ -769,13 +783,11 @@ extension GetNavigationExt on GetInterface {
       newRouteName = uri.toString();
     }
 
-    return searchDelegate(id).offAllNamed<T>(
-      newRouteName,
-      //predicate: predicate ?? (_) => false,
-      arguments: arguments,
-      id: id,
-      parameters: parameters,
-    );
+    return global(id).currentState?.pushNamedAndRemoveUntil<T>(
+          newRouteName,
+          predicate ?? (_) => false,
+          arguments: arguments,
+        );
   }
 
   /// Returns true if a Snackbar, Dialog or BottomSheet is currently OPEN
@@ -804,13 +816,6 @@ extension GetNavigationExt on GetInterface {
     bool canPop = true,
     int? id,
   }) {
-    //TODO: remove this when change own api to Dialog and BottomSheets
-    //to declarative way
-    if (isDialogOpen! || isBottomSheetOpen!) {
-      searchDelegate(id).navigatorKey.currentState?.pop();
-      return;
-    }
-
     //TODO: This code brings compatibility of the new snackbar with GetX 4,
     // remove this code in version 5
     if (isSnackbarOpen && !closeOverlays) {
@@ -824,21 +829,16 @@ extension GetNavigationExt on GetInterface {
       if (isSnackbarOpen) {
         closeAllSnackbars();
       }
-
-      while ((isDialogOpen! && isBottomSheetOpen!)) {
-        searchDelegate(id).navigatorKey.currentState?.pop();
-      }
-
-      // navigator?.popUntil((route) {
-      //   return;
-      // });
+      navigator?.popUntil((route) {
+        return (!isDialogOpen! && !isBottomSheetOpen!);
+      });
     }
     if (canPop) {
-      if (searchDelegate(id).canBack == true) {
-        searchDelegate(id).back<T>(result);
+      if (global(id).currentState?.canPop() == true) {
+        global(id).currentState?.pop<T>(result);
       }
     } else {
-      searchDelegate(id).back<T>(result);
+      global(id).currentState?.pop<T>(result);
     }
   }
 
@@ -853,7 +853,7 @@ extension GetNavigationExt on GetInterface {
       times = 1;
     }
     var count = 0;
-    var back = searchDelegate(id).backUntil((route) => count++ == times);
+    var back = global(id).currentState?.popUntil((route) => count++ == times);
 
     return back;
   }
@@ -884,15 +884,15 @@ extension GetNavigationExt on GetInterface {
   /// By default, GetX will prevent you from push a route that you already in,
   /// if you want to push anyway, set [preventDuplicates] to false
   Future<T?>? off<T>(
-    Widget Function() page, {
-    bool? opaque,
+    dynamic page, {
+    bool opaque = false,
     Transition? transition,
     Curve? curve,
     bool? popGesture,
     int? id,
     String? routeName,
     dynamic arguments,
-    List<BindingsInterface> bindings = const [],
+    Bindings? binding,
     bool fullscreenDialog = false,
     bool preventDuplicates = true,
     Duration? duration,
@@ -903,34 +903,21 @@ extension GetNavigationExt on GetInterface {
     if (preventDuplicates && routeName == currentRoute) {
       return null;
     }
-    return searchDelegate(id).off(
-      page,
-      opaque: opaque ?? true,
-      transition: transition,
-      curve: curve,
-      popGesture: popGesture,
-      id: id,
-      routeName: routeName,
-      arguments: arguments,
-      bindings: bindings,
-      fullscreenDialog: fullscreenDialog,
-      preventDuplicates: preventDuplicates,
-      duration: duration,
-      gestureWidth: gestureWidth,
-    );
-  }
-
-  Future<T?> offUntil<T>(
-    Widget Function() page,
-    bool Function(GetPage) predicate, [
-    Object? arguments,
-    int? id,
-  ]) {
-    return searchDelegate(id).offUntil(
-      page,
-      predicate,
-      arguments,
-    );
+    return global(id).currentState?.pushReplacement(GetPageRoute(
+        opaque: opaque,
+        gestureWidth: gestureWidth,
+        page: _resolvePage(page, 'off'),
+        binding: binding,
+        settings: RouteSettings(
+          arguments: arguments,
+          name: routeName,
+        ),
+        routeName: routeName,
+        fullscreenDialog: fullscreenDialog,
+        popGesture: popGesture ?? defaultPopGesture,
+        transition: transition ?? defaultTransition,
+        curve: curve ?? defaultTransitionCurve,
+        transitionDuration: duration ?? defaultTransitionDuration));
   }
 
   ///
@@ -964,14 +951,14 @@ extension GetNavigationExt on GetInterface {
   /// By default, GetX will prevent you from push a route that you already in,
   /// if you want to push anyway, set [preventDuplicates] to false
   Future<T?>? offAll<T>(
-    Widget Function() page, {
-    bool Function(GetPage<dynamic>)? predicate,
-    bool? opaque,
+    dynamic page, {
+    RoutePredicate? predicate,
+    bool opaque = false,
     bool? popGesture,
     int? id,
     String? routeName,
     dynamic arguments,
-    List<BindingsInterface> bindings = const [],
+    Bindings? binding,
     bool fullscreenDialog = false,
     Transition? transition,
     Curve? curve,
@@ -980,21 +967,24 @@ extension GetNavigationExt on GetInterface {
   }) {
     routeName ??= "/${page.runtimeType.toString()}";
     routeName = _cleanRouteName(routeName);
-    return searchDelegate(id).offAll<T>(
-      page,
-      predicate: predicate,
-      opaque: opaque ?? true,
-      popGesture: popGesture,
-      id: id,
-      //  routeName routeName,
-      arguments: arguments,
-      bindings: bindings,
-      fullscreenDialog: fullscreenDialog,
-      transition: transition,
-      curve: curve,
-      duration: duration,
-      gestureWidth: gestureWidth,
-    );
+    return global(id).currentState?.pushAndRemoveUntil<T>(
+        GetPageRoute<T>(
+          opaque: opaque,
+          popGesture: popGesture ?? defaultPopGesture,
+          page: _resolvePage(page, 'offAll'),
+          binding: binding,
+          gestureWidth: gestureWidth,
+          settings: RouteSettings(
+            name: routeName,
+            arguments: arguments,
+          ),
+          fullscreenDialog: fullscreenDialog,
+          routeName: routeName,
+          transition: transition ?? defaultTransition,
+          curve: curve ?? defaultTransitionCurve,
+          transitionDuration: duration ?? defaultTransitionDuration,
+        ),
+        predicate ?? (route) => false);
   }
 
   /// Takes a route [name] String generated by [to], [off], [offAll]
@@ -1079,48 +1069,42 @@ extension GetNavigationExt on GetInterface {
     return _getxController.addKey(newKey);
   }
 
-  GetDelegate? nestedKey(String? key) {
-    if (key == null) {
-      return routerDelegate as GetDelegate;
-    }
+  GlobalKey<NavigatorState>? nestedKey(dynamic key) {
     keys.putIfAbsent(
       key,
-      () => GetDelegate(
-        showHashOnUrl: true,
-        //debugLabel: 'Getx nested key: ${key.toString()}',
-        pages: RouteDecoder.fromRoute(key).currentChildrens ?? [],
+      () => GlobalKey<NavigatorState>(
+        debugLabel: 'Getx nested key: ${key.toString()}',
       ),
     );
     return keys[key];
   }
 
-  GetDelegate searchDelegate(dynamic k) {
-    GetDelegate _key;
+  GlobalKey<NavigatorState> global(int? k) {
+    GlobalKey<NavigatorState> newKey;
     if (k == null) {
-      _key = Get.rootController.rootDelegate;
+      newKey = key;
     } else {
       if (!keys.containsKey(k)) {
         throw 'Route id ($k) not found';
       }
-      _key = keys[k]!;
+      newKey = keys[k]!;
     }
 
-    // if (_key.listenersLength == 0 && !testMode) {
-    //   throw """You are trying to use contextless navigation without
-    //   a GetMaterialApp or Get.key.
-    //   If you are testing your app, you can use:
-    //   [Get.testMode = true], or if you are running your app on
-    //   a physical device or emulator, you must exchange your [MaterialApp]
-    //   for a [GetMaterialApp].
-    //   """;
-    // }
+    if (newKey.currentContext == null && !testMode) {
+      throw """You are trying to use contextless navigation without
+      a GetMaterialApp or Get.key.
+      If you are testing your app, you can use:
+      [Get.testMode = true], or if you are running your app on
+      a physical device or emulator, you must exchange your [MaterialApp]
+      for a [GetMaterialApp].
+      """;
+    }
 
-    return _key;
+    return newKey;
   }
 
   /// give current arguments
-  //dynamic get arguments => routing.args;
-  dynamic get arguments => _getxController.rootDelegate.arguments();
+  dynamic get arguments => routing.args;
 
   /// give name from current route
   String get currentRoute => routing.current;
@@ -1169,14 +1153,14 @@ extension GetNavigationExt on GetInterface {
 
   /// give access to Theme.of(context)
   ThemeData get theme {
-    var _theme = ThemeData.fallback();
+    var theme = ThemeData.fallback();
     if (context != null) {
-      _theme = Theme.of(context!);
+      theme = Theme.of(context!);
     }
-    return _theme;
+    return theme;
   }
 
-  /// The current null safe [WidgetsBinding]
+  ///The current [WidgetsBinding]
   WidgetsBinding get engine {
     return WidgetsFlutterBinding.ensureInitialized();
   }
@@ -1235,7 +1219,7 @@ extension GetNavigationExt on GetInterface {
 
   GlobalKey<NavigatorState> get key => _getxController.key;
 
-  Map<dynamic, GetDelegate> get keys => _getxController.keys;
+  Map<dynamic, GlobalKey<NavigatorState>> get keys => _getxController.keys;
 
   GetMaterialController get rootController => _getxController;
 
@@ -1260,8 +1244,7 @@ extension GetNavigationExt on GetInterface {
 
   Routing get routing => _getxController.routing;
 
-  Map<String, String?> get parameters =>
-      _getxController.rootDelegate.parameters;
+  Map<String, String?> get parameters => _getxController.parameters;
   set parameters(Map<String, String?> newParameters) =>
       _getxController.parameters = newParameters;
 
@@ -1288,16 +1271,11 @@ extension NavTwoExt on GetInterface {
     _routeTree.routes.clear();
   }
 
-  static late final _routeTree = ParseRouteTree(routes: []);
+  static final _routeTree = ParseRouteTree(routes: []);
 
   ParseRouteTree get routeTree => _routeTree;
-
   void addPage(GetPage getPage) {
     routeTree.addRoute(getPage);
-  }
-
-  void removePage(GetPage getPage) {
-    routeTree.removeRoute(getPage);
   }
 
   /// Casts the stored router delegate to a desired type
@@ -1323,15 +1301,15 @@ extension NavTwoExt on GetInterface {
 
   // static GetDelegate? _delegate;
 
+  GetDelegate get rootDelegate => createDelegate();
+
   GetDelegate createDelegate({
     GetPage<dynamic>? notFoundRoute,
-    List<GetPage> pages = const [],
     List<NavigatorObserver>? navigatorObservers,
     TransitionDelegate<dynamic>? transitionDelegate,
     PopMode backButtonPopMode = PopMode.History,
     PreventDuplicateHandlingMode preventDuplicateHandlingMode =
         PreventDuplicateHandlingMode.ReorderRoutes,
-    GlobalKey<NavigatorState>? navigatorKey,
   }) {
     if (routerDelegate == null) {
       return routerDelegate = GetDelegate(
@@ -1340,8 +1318,6 @@ extension NavTwoExt on GetInterface {
         transitionDelegate: transitionDelegate,
         backButtonPopMode: backButtonPopMode,
         preventDuplicateHandlingMode: preventDuplicateHandlingMode,
-        pages: pages,
-        navigatorKey: navigatorKey,
       );
     } else {
       return routerDelegate as GetDelegate;
@@ -1369,8 +1345,8 @@ extension OverlayExt on GetInterface {
     });
     final overlayEntryLoader = OverlayEntry(builder: (context) {
       return loadingWidget ??
-          Center(
-              child: Container(
+          const Center(
+              child: SizedBox(
             height: 90,
             width: 90,
             child: Text('Loading...'),

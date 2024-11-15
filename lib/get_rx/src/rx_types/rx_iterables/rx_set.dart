@@ -1,8 +1,11 @@
 part of rx_types;
 
-class RxSet<E> extends GetListenable<Set<E>>
-    with SetMixin<E>, RxObjectMixin<Set<E>> {
-  RxSet([Set<E> initial = const {}]) : super(initial);
+class RxSet<E> extends SetMixin<E>
+    with NotifyManager<Set<E>>, RxObjectMixin<Set<E>>
+    implements RxInterface<Set<E>> {
+  RxSet([Set<E> initial = const {}]) {
+    _value = Set.from(initial);
+  }
 
   /// Special override to push() element(s) in a reactive way
   /// inside the List,
@@ -17,29 +20,26 @@ class RxSet<E> extends GetListenable<Set<E>>
     refresh();
   }
 
-  // @override
-  // @protected
-  // Set<E> get value {
-  //   return subject.value;
-  //   // RxInterface.proxy?.addListener(subject);
-  //   // return _value;
-  // }
+  @override
+  @protected
+  Set<E> get value {
+    RxInterface.proxy?.addListener(subject);
+    return _value;
+  }
 
   @override
   @protected
   set value(Set<E> val) {
-    if (value == val) return;
-    value = val;
+    if (_value == val) return;
+    _value = val;
     refresh();
   }
 
   @override
-  bool add(E val) {
-    final hasAdded = value.add(val);
-    if (hasAdded) {
-      refresh();
-    }
-    return hasAdded;
+  bool add(E value) {
+    final val = _value.add(value);
+    refresh();
+    return val;
   }
 
   @override
@@ -60,7 +60,7 @@ class RxSet<E> extends GetListenable<Set<E>>
 
   @override
   bool remove(Object? item) {
-    var hasRemoved = value.remove(item);
+    var hasRemoved = _value.remove(item);
     if (hasRemoved) {
       refresh();
     }
@@ -74,31 +74,31 @@ class RxSet<E> extends GetListenable<Set<E>>
 
   @override
   void addAll(Iterable<E> item) {
-    value.addAll(item);
+    _value.addAll(item);
     refresh();
   }
 
   @override
   void clear() {
-    value.clear();
+    _value.clear();
     refresh();
   }
 
   @override
   void removeAll(Iterable<Object?> elements) {
-    value.removeAll(elements);
+    _value.removeAll(elements);
     refresh();
   }
 
   @override
   void retainAll(Iterable<Object?> elements) {
-    value.retainAll(elements);
+    _value.retainAll(elements);
     refresh();
   }
 
   @override
   void retainWhere(bool Function(E) E) {
-    value.retainWhere(E);
+    _value.retainWhere(E);
     refresh();
   }
 }

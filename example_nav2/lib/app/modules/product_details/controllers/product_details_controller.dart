@@ -13,7 +13,6 @@ class ProductDetailsController extends GetxController {
   @override
   void onClose() {
     Get.log('ProductDetailsController close with id: $productId');
-
     super.onClose();
   }
 }

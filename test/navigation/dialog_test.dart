@@ -10,8 +10,6 @@ void main() {
       Wrapper(child: Container()),
     );
 
-    await tester.pump();
-
     Get.defaultDialog(
         onConfirm: () => print("Ok"),
         middleText: "Dialog made in 3 lines of code");
@@ -26,9 +24,7 @@ void main() {
       Wrapper(child: Container()),
     );
 
-    await tester.pump();
-
-    Get.dialog(YourDialogWidget());
+    Get.dialog(const YourDialogWidget());
 
     await tester.pumpAndSettle();
 
@@ -40,20 +36,11 @@ void main() {
       Wrapper(child: Container()),
     );
 
-    await tester.pump();
-
-    Get.dialog(YourDialogWidget());
-    await tester.pumpAndSettle();
-
-    expect(find.byType(YourDialogWidget), findsOneWidget);
-    // expect(Get.isDialogOpen, true);
-
+    Get.dialog(const YourDialogWidget());
+    expect(Get.isDialogOpen, true);
     Get.back();
+    expect(Get.isDialogOpen, false);
     await tester.pumpAndSettle();
-
-    expect(find.byType(YourDialogWidget), findsNothing);
-    // expect(Get.isDialogOpen, false);
-    // await tester.pumpAndSettle();
   });
 }
 

@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-
 import '../../../get.dart';
 
 abstract class _RouteMiddleware {
@@ -51,7 +50,7 @@ abstract class _RouteMiddleware {
   /// }
   /// ```
   /// {@end-tool}
-  Future<RouteDecoder?> redirectDelegate(RouteDecoder route);
+  Future<GetNavConfig?> redirectDelegate(GetNavConfig route);
 
   /// This function will be called when this Page is called
   /// you can use it to change something about the page or give it new page
@@ -78,7 +77,7 @@ abstract class _RouteMiddleware {
   /// }
   /// ```
   /// {@end-tool}
-  List<R>? onBindingsStart<R>(List<R> bindings);
+  List<Bindings>? onBindingsStart(List<Bindings> bindings);
 
   /// This function will be called right after the [Bindings] are initialize.
   GetPageBuilder? onPageBuildStart(GetPageBuilder page);
@@ -108,7 +107,7 @@ class GetMiddleware implements _RouteMiddleware {
   GetPage? onPageCalled(GetPage? page) => page;
 
   @override
-  List<R>? onBindingsStart<R>(List<R>? bindings) => bindings;
+  List<Bindings>? onBindingsStart(List<Bindings>? bindings) => bindings;
 
   @override
   GetPageBuilder? onPageBuildStart(GetPageBuilder? page) => page;
@@ -120,7 +119,7 @@ class GetMiddleware implements _RouteMiddleware {
   void onPageDispose() {}
 
   @override
-  Future<RouteDecoder?> redirectDelegate(RouteDecoder route) =>
+  Future<GetNavConfig?> redirectDelegate(GetNavConfig route) =>
       SynchronousFuture(route);
 }
 
@@ -156,7 +155,7 @@ class MiddlewareRunner {
     return to;
   }
 
-  List<R>? runOnBindingsStart<R>(List<R>? bindings) {
+  List<Bindings>? runOnBindingsStart(List<Bindings>? bindings) {
     _getMiddlewares().forEach((element) {
       bindings = element.onBindingsStart(bindings);
     });
@@ -212,8 +211,8 @@ class PageRedirect {
       showCupertinoParallax: _r.showCupertinoParallax,
       gestureWidth: _r.gestureWidth,
       customTransition: _r.customTransition,
+      binding: _r.binding,
       bindings: _r.bindings,
-      binds: _r.binds,
       transitionDuration:
           _r.transitionDuration ?? Get.defaultTransitionDuration,
       transition: _r.transition,
@@ -241,8 +240,8 @@ class PageRedirect {
       gestureWidth: _r.gestureWidth,
       opaque: _r.opaque,
       customTransition: _r.customTransition,
+      binding: _r.binding,
       bindings: _r.bindings,
-      binds: _r.binds,
       transitionDuration:
           _r.transitionDuration ?? Get.defaultTransitionDuration,
       transition: _r.transition,
@@ -285,8 +284,8 @@ class PageRedirect {
   void addPageParameter(GetPage route) {
     if (route.parameters == null) return;
 
-    final parameters = Map<String, String?>.from(Get.parameters);
+    final parameters = Get.parameters;
     parameters.addEntries(route.parameters!.entries);
-    // Get.parameters = parameters;
+    Get.parameters = parameters;
   }
 }

@@ -87,19 +87,11 @@ class SnackbarController {
     }
   }
 
-  bool _isTesting = false;
-
   void _configureOverlay() {
-    final overlayContext = Get.overlayContext;
-    _isTesting = overlayContext == null;
-    _overlayState =
-        _isTesting ? OverlayState() : Overlay.of(Get.overlayContext!);
+    _overlayState = Overlay.of(Get.overlayContext!);
     _overlayEntries.clear();
     _overlayEntries.addAll(_createOverlayEntries(_getBodyWidget()));
-    if (!_isTesting) {
-      _overlayState!.insertAll(_overlayEntries);
-    }
-
+    _overlayState!.insertAll(_overlayEntries);
     _configureSnackBarDisplay();
   }
 
@@ -324,10 +316,8 @@ class SnackbarController {
   }
 
   void _removeOverlay() {
-    if (!_isTesting) {
-      for (var element in _overlayEntries) {
-        element.remove();
-      }
+    for (var element in _overlayEntries) {
+      element.remove();
     }
 
     assert(!_transitionCompleter.isCompleted,

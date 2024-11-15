@@ -7,10 +7,10 @@ import '../src/multipart/form_data.dart';
 import '../src/request/request.dart';
 import '../src/response/response.dart';
 import '../src/status/http_status.dart';
-import 'http/interface/request_base.dart';
-import 'http/stub/http_request_stub.dart'
-    if (dart.library.html) 'http/html/http_request_html.dart'
-    if (dart.library.io) 'http/io/http_request_io.dart';
+import '_http/_stub/_http_request_stub.dart'
+    if (dart.library.io) '_http/_io/_http_request_io.dart'
+    if (dart.library.html) '_http/_html/_http_request_html.dart' as platform;
+import '_http/interface/request_base.dart';
 import 'interceptors/get_modifiers.dart';
 
 typedef Decoder<T> = T Function(dynamic data);
@@ -28,7 +28,6 @@ class GetHttpClient {
   int maxAuthRetries;
 
   bool sendUserAgent;
-  bool sendContentLength;
 
   Decoder? defaultDecoder;
 
@@ -48,14 +47,13 @@ class GetHttpClient {
     this.followRedirects = true,
     this.maxRedirects = 5,
     this.sendUserAgent = false,
-    this.sendContentLength = true,
     this.maxAuthRetries = 1,
     bool allowAutoSignedCert = false,
     this.baseUrl,
     List<TrustedCertificate>? trustedCertificates,
     bool withCredentials = false,
     String Function(Uri url)? findProxy,
-  })  : _httpClient = HttpRequestImpl(
+  })  : _httpClient = platform.HttpRequestImpl(
           allowAutoSignedCert: allowAutoSignedCert,
           trustedCertificates: trustedCertificates,
           withCredentials: withCredentials,
@@ -113,7 +111,7 @@ class GetHttpClient {
 
     if (body is FormData) {
       bodyBytes = await body.toBytes();
-      _setContentLenght(headers, bodyBytes.length);
+      headers['content-length'] = bodyBytes.length.toString();
       headers['content-type'] =
           'multipart/form-data; boundary=${body.boundary}';
     } else if (contentType != null &&
@@ -126,21 +124,21 @@ class GetHttpClient {
       });
       var formData = parts.join('&');
       bodyBytes = utf8.encode(formData);
-      _setContentLenght(headers, bodyBytes.length);
+      headers['content-length'] = bodyBytes.length.toString();
       headers['content-type'] = contentType;
     } else if (body is Map || body is List) {
       var jsonString = json.encode(body);
+
       bodyBytes = utf8.encode(jsonString);
-      _setContentLenght(headers, bodyBytes.length);
+      headers['content-length'] = bodyBytes.length.toString();
       headers['content-type'] = contentType ?? defaultContentType;
     } else if (body is String) {
       bodyBytes = utf8.encode(body);
-      _setContentLenght(headers, bodyBytes.length);
-
+      headers['content-length'] = bodyBytes.length.toString();
       headers['content-type'] = contentType ?? defaultContentType;
     } else if (body == null) {
-      _setContentLenght(headers, 0);
       headers['content-type'] = contentType ?? defaultContentType;
+      headers['content-length'] = '0';
     } else {
       if (!errorSafety) {
         throw UnexpectedFormat('body cannot be ${body.runtimeType}');
@@ -162,12 +160,6 @@ class GetHttpClient {
       maxRedirects: maxRedirects,
       decoder: decoder,
     );
-  }
-
-  void _setContentLenght(Map<String, String> headers, int contentLength) {
-    if (sendContentLength) {
-      headers['content-length'] = '$contentLength';
-    }
   }
 
   Stream<List<int>> _trackProgress(
