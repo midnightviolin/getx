@@ -219,7 +219,8 @@ extension ExtensionDialog on GetInterface {
             child: Text(
               textConfirm ?? "Ok",
               style:
-                  TextStyle(color: confirmTextColor ?? theme.backgroundColor),
+                  TextStyle(
+                  color: confirmTextColor ?? theme.colorScheme.surface),
             ),
             onPressed: () {
               onConfirm?.call();
